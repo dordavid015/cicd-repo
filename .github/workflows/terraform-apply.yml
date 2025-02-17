@@ -50,7 +50,7 @@ jobs:
         
       - name: Deploy application
         run: |
-          echo "Deploying to ${{ env.instance_ip }}"
+          echo "Deploying to $(terraform output -raw instance_public_ip)"
           scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/app
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$(terraform output -raw instance_public_ip) '
             cd /home/ubuntu/app
