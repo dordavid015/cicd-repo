@@ -38,17 +38,11 @@ jobs:
         id: get-ip
         working-directory: ./terraform
         run: |
-        # First, get just the terraform output
-        IP=$(terraform output -raw instance_public_ip)
-
-        # Clean it up by removing any whitespace
-        IP=$(echo "$IP" | tr -d ' \n')
-
-        # Verify the output
-        echo "IP is: $IP"
- 
-        # Add to GitHub output
-        echo "instance_ip=$IP" >> "$GITHUB_OUTPUT"
+          cd terraform
+          IP=$(terraform output -raw instance_public_ip)
+          IP=$(echo "$IP" | tr -d ' \n')
+          echo "IP is: $IP"
+          echo "instance_ip=$IP" >> "$GITHUB_OUTPUT"
 
         
       - name: Setup SSH Key
