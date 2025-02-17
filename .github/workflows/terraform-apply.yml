@@ -46,7 +46,7 @@ jobs:
 
         # Verify the output
         echo "IP is: $IP"
-
+ 
         # Add to GitHub output
         echo "instance_ip=$IP" >> "$GITHUB_OUTPUT"
 
