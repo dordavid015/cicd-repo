@@ -38,7 +38,6 @@ jobs:
         id: get-ip
         working-directory: ./terraform
         run: |
-          cd terraform
           IP=$(terraform output -raw instance_public_ip)
           IP=$(echo "$IP" | tr -d ' \n')
           echo "IP is: $IP"
