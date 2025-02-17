@@ -41,6 +41,7 @@ jobs:
           cd terraform
           terraform output -raw private_key > private_key.pem
           chmod 600 private_key.pem
+          cp private_key.pem ../
         
       - name: Wait for instance to be ready
         run: |
