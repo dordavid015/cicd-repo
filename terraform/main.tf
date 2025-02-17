@@ -1,27 +1,57 @@
-resource "aws_instance" "app_server" {
-  ami           = "ami-0c02fb55956c7d316" # Amazon Linux 2 AMI
-  instance_type = var.instance_type
-  key_name      = var.key_name
-  subnet_id     = var.subnet_id
+provider "aws" {
+  region = "eu-west-1"
+}
 
-  security_groups = [var.security_group_id]
+resource "tls_private_key" "key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "generated_key" {
+  key_name   = "my-terraform-key"  # שם המפתח שיופיע ב-AWS
+  public_key = tls_private_key.key.public_key_openssh
+}
+
+resource "local_file" "private_key" {
+  content  = tls_private_key.key.private_key_pem
+  filename = "${path.module}/private_key.pem"
+}
+
+resource "aws_instance" "app_server" {
+  ami           = "ami-0694d931cee176e7d"  # Ubuntu 22.04 LTS
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.generated_key.key_name
+
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
 
   tags = {
-    Name = "AppServer"
+    Name = "ApplicationServer"
+  }
+}
+
+resource "aws_security_group" "app_sg" {
+  name        = "app_sg"
+  description = "Security group for application server"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo yum update -y",
-      "sudo yum install python3 -y"
-    ]
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = file("~/.ssh/id_rsa")
-      host        = self.public_ip
-    }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
