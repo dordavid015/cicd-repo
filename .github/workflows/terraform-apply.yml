@@ -31,14 +31,16 @@ jobs:
         run: terraform init
          
       - name: Terraform Apply
-        id: tf-apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+        
+      - name: Get Instance IP
+        id: get-ip
         working-directory: ./terraform
         run: |
-          terraform apply -auto-approve
-          IP=$(terraform output -raw instance_public_ip)
-          echo ${IP}
-          echo "instance_ip=${IP}" >> "$GITHUB_OUTPUT"
-        shell: bash
+          IP=$(terraform output -raw instance_public_ip | tr -d '\n')
+          echo "IP is: $IP"
+          echo "instance_ip=$IP" >> "$GITHUB_OUTPUT"
         
       - name: Setup SSH Key
         working-directory: ./terraform
@@ -49,8 +51,7 @@ jobs:
           
       - name: Debug Info
         run: |
-          echo "Instance IP is ${{ steps.tf-apply.outputs.instance_ip }}"
-          ls -la ~/.ssh/
+          echo "Using IP: ${{ steps.get-ip.outputs.instance_ip }}"
           
       - name: Wait for instance
         run: |
@@ -58,24 +59,22 @@ jobs:
           sleep 30
         
       - name: Deploy application
+        env:
+          INSTANCE_IP: ${{ steps.get-ip.outputs.instance_ip }}
         run: |
-          IP="${{ steps.tf-apply.outputs.instance_ip }}"
-          echo "Deploying to $IP"
+          echo "Deploying to $INSTANCE_IP"
           
-          # בדיקת קישוריות
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@$IP 'echo "Connection test"' || {
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@$INSTANCE_IP 'echo "Connection test"' || {
             echo "Failed to connect to instance"
             exit 1
           }
           
-          # העלאת הקבצים
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem -r ./* ubuntu@$IP:/home/ubuntu/app || {
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem -r ./* ubuntu@$INSTANCE_IP:/home/ubuntu/app || {
             echo "Failed to copy files"
             exit 1
           }
           
-          # התקנה והפעלה
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@$IP '
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@$INSTANCE_IP '
             cd /home/ubuntu/app &&
             sudo apt-get update &&
             sudo apt-get install -y python3-pip &&
