@@ -46,10 +46,16 @@ jobs:
       - name: Wait for instance to be ready
         run: |
          ls
-         sleep 60
+         sleep 10
         
       - name: Deploy application
         run: |
+          pwd
+          ls -la
+          cd teraform/
+          terraform show
+          cd ..
+          terraform show
           echo "Deploying to $(terraform output -raw instance_public_ip)"
           scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/app
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$(terraform output -raw instance_public_ip) '
