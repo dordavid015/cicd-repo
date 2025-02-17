@@ -40,7 +40,30 @@ jobs:
           cd terraform
           terraform output -raw private_key > private_key.pem
           chmod 600 private_key.pem
-        
+
+      - name: Verify Private Key
+        run: |
+          # מיקום המפתח
+          PRIVATE_KEY_PATH="./private_key.pem"
+          
+          # בדוק אם קובץ המפתח קיים
+          if [ -f "$PRIVATE_KEY_PATH" ]; then
+            echo "הקובץ private_key.pem נמצא."
+          else
+            echo "שגיאה: קובץ private_key.pem לא נמצא!"
+            exit 1
+          fi
+
+          # בדוק את הרשאות הקובץ
+          KEY_PERMISSIONS=$(stat -c %a "$PRIVATE_KEY_PATH")
+          if [ "$KEY_PERMISSIONS" -ne 600 ]; then
+            echo "שגיאה: הרשאות קובץ לא נכונות. יש להגדיר הרשאות 600."
+            chmod 600 "$PRIVATE_KEY_PATH"
+            echo "ההרשאות עודכנו ל-600."
+          else
+            echo "ההרשאות נכונות (600)."
+          fi
+
       - name: Wait for instance to be ready
         run: sleep 60
         
@@ -55,5 +78,5 @@ jobs:
             sudo apt-get install -y python3-pip
             pip3 install -r requirements.txt
             # הפעלת האפליקציה
-            nohup python3 app.py > app.log 2>&1 &
+            nohup python3 app.py > app.log 2>&1 & 
           '
