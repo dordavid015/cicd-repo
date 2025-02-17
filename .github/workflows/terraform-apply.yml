@@ -4,7 +4,8 @@ on:
     workflows: ["Python Tests"]
     types:
       - completed
-    workflow_dispatch:
+  workflow_dispatch:
+
 jobs:
   deploy_infra:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
