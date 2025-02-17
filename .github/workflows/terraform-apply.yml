@@ -33,8 +33,9 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform apply -auto-approve
-          echo "instance_ip=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
-        
+          instance_ip=$(terraform output -raw instance_public_ip)
+          echo "instance_ip=$instance_ip" >> $GITHUB_ENV
+          
       - name: Save Private Key
         run: |
           cd terraform
@@ -68,11 +69,10 @@ jobs:
         run: sleep 60
         
       - name: Deploy application
-        working-directory: ./terraform
         run: |
-          echo "Deploying to ${{ steps.terraform.outputs.instance_ip }}"
-          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@${{ steps.terraform.outputs.instance_ip }}:/home/ubuntu/app
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${{ steps.terraform.outputs.instance_ip }} '
+          echo "Deploying to ${{ env.instance_ip }}"
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@${{ env.instance_ip }}:/home/ubuntu/app
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${{ env.instance_ip }} '
             cd /home/ubuntu/app
             sudo apt-get update
             sudo apt-get install -y python3-pip
