@@ -3,7 +3,7 @@ terraform {
     bucket = "dordavid-cicd-gh"
     key    = "terraform.tfstate"
     region = "eu-west-1"
-  }
+  } 
 
   required_providers {
     aws = {
