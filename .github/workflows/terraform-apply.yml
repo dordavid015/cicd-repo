@@ -35,38 +35,41 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform apply -auto-approve
-          echo "instance_ip=$(terraform output -raw instance_public_ip)"
-          echo "PRIVATE_KEY=$(terraform output -raw private_key)"
+          # שמירת ה-IP כמשתנה שניתן להשתמש בו בין השלבים
+          echo "instance_ip=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
         
-      - name: Save Private Key
+      - name: Setup SSH Key
+        working-directory: ./terraform
         run: |
-          cd terraform
-          terraform output -raw private_key > private_key.pem
-          chmod 600 private_key.pem
-          cp private_key.pem ../
+          # יצירת תיקיית SSH
+          mkdir -p ~/.ssh
+          # שמירת המפתח הפרטי
+          terraform output -raw private_key > ~/.ssh/private_key.pem
+          chmod 600 ~/.ssh/private_key.pem
+          # הוספת המפתח ל-SSH agent
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/private_key.pem
         
-      - name: Wait for instance to be ready
+      - name: Wait for instance
         run: |
-         ls
-         sleep 10 
+          echo "Waiting for instance ${{ env.instance_ip }} to be ready..."
+          sleep 30
         
       - name: Deploy application
+        working-directory: ./terraform
         run: |
-          cd terraform
-          # Define the instance IP address as a variable
-          instance_ip=$(terraform output -raw instance_public_ip)
-          echo 
+          echo "Deploying to ${{ env.instance_ip }}"
+          # בדיקת קישוריות
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@${{ env.instance_ip }} 'echo "Connection successful"'
           
-          # Verify that the instance_ip is set correctly
-          echo "Deploying to $instance_ip"
+          # העלאת הקבצים
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem -r ../* ubuntu@${{ env.instance_ip }}:/home/ubuntu/app
           
-          # Use the instance_ip for SCP and SSH commands
-          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$instance_ip:/home/ubuntu/app
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$instance_ip '
-            cd /home/ubuntu/app
-            sudo apt-get update
-            sudo apt-get install -y python3-pip
-            pip3 install -r requirements.txt
-            # Run the application in the background
-            nohup python3 app.py > app.log 2>&1 & 
+          # התקנה והפעלה
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@${{ env.instance_ip }} '
+            cd /home/ubuntu/app &&
+            sudo apt-get update &&
+            sudo apt-get install -y python3-pip &&
+            pip3 install -r requirements.txt &&
+            nohup python3 app.py > app.log 2>&1 &
           '
