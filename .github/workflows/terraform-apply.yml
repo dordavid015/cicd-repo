@@ -33,8 +33,8 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform apply -auto-approve
-          echo "instance_ip=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
-          echo "PRIVATE_KEY=$(terraform output -raw private_key)" >> $GITHUB_ENV
+          echo "instance_ip=$(terraform output -raw instance_public_ip)"
+          echo "PRIVATE_KEY=$(terraform output -raw private_key)"
         
       - name: Save Private Key
         run: |
