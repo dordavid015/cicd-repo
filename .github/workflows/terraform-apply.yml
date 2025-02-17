@@ -4,6 +4,7 @@ on:
     workflows: ["Python Tests"]
     types:
       - completed
+    workflow_dispatch:
 jobs:
   deploy_infra:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -57,8 +58,8 @@ jobs:
           echo "instance_ip=$(terraform output -raw instance_public_ip)"
           echo "PRIVATE_KEY=$(terraform output -raw private_key)"
           echo "Deploying to $(terraform output -raw instance_public_ip)"
-          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/app
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$(terraform output -raw instance_public_ip) '
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$(instance_ip):/home/ubuntu/app
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$(instance_ip) '
             cd /home/ubuntu/app
             sudo apt-get update
             sudo apt-get install -y python3-pip
