@@ -52,7 +52,7 @@ jobs:
         run: |
           pwd
           ls -la
-          cd teraform/
+          cd terraform/
           terraform show
           cd ..
           terraform show
