@@ -29,8 +29,11 @@ jobs:
         run: terraform init
         
       - name: Terraform Apply
+        id: terraform
         working-directory: ./terraform
-        run: terraform apply -auto-approve
+        run: |
+          terraform apply -auto-approve
+          echo "instance_ip=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
         
       - name: Save Private Key
         run: |
@@ -38,15 +41,19 @@ jobs:
           terraform output -raw private_key > private_key.pem
           chmod 600 private_key.pem
         
+      - name: Wait for instance to be ready
+        run: sleep 60
+        
       - name: Deploy application
-        env:
-          EC2_PUBLIC_IP: $(terraform output -raw instance_public_ip)
+        working-directory: ./terraform
         run: |
-          scp -i terraform/private_key.pem -o StrictHostKeyChecking=no -r ./* ubuntu@${EC2_PUBLIC_IP}:/home/ubuntu/app
-          ssh -i terraform/private_key.pem -o StrictHostKeyChecking=no ubuntu@${EC2_PUBLIC_IP} '
+          echo "Deploying to ${{ steps.terraform.outputs.instance_ip }}"
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@${{ steps.terraform.outputs.instance_ip }}:/home/ubuntu/app
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${{ steps.terraform.outputs.instance_ip }} '
             cd /home/ubuntu/app
             sudo apt-get update
             sudo apt-get install -y python3-pip
             pip3 install -r requirements.txt
+            # הפעלת האפליקציה
             nohup python3 app.py > app.log 2>&1 &
           '
