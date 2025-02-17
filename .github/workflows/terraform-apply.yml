@@ -54,9 +54,7 @@ jobs:
           pwd
           ls -la
           cd terraform/
-          terraform show
           echo "instance_ip=$(terraform output -raw instance_public_ip)"
-          echo "PRIVATE_KEY=$(terraform output -raw private_key)"
           echo "Deploying to $(terraform output -raw instance_public_ip)"
           scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$(instance_ip):/home/ubuntu/app
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$(instance_ip) '
