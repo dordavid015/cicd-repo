@@ -30,13 +30,15 @@ jobs:
         working-directory: ./terraform
         run: terraform init
          
-      - name: Terraform Apply and Get IP
+      - name: Terraform Apply
         id: tf-apply
         working-directory: ./terraform
         run: |
           terraform apply -auto-approve
-          INSTANCE_IP=$(terraform output -raw instance_public_ip)
-          echo "ip=$INSTANCE_IP" >> $GITHUB_OUTPUT
+          IP=$(terraform output -raw instance_public_ip)
+          echo ${IP}
+          echo "instance_ip=${IP}" >> "$GITHUB_OUTPUT"
+        shell: bash
         
       - name: Setup SSH Key
         working-directory: ./terraform
@@ -45,26 +47,41 @@ jobs:
           terraform output -raw private_key > ~/.ssh/private_key.pem
           chmod 600 ~/.ssh/private_key.pem
           
+      - name: Debug Info
+        run: |
+          echo "Instance IP is ${{ steps.tf-apply.outputs.instance_ip }}"
+          ls -la ~/.ssh/
+          
       - name: Wait for instance
         run: |
-          echo "Waiting for instance ${{ steps.tf-apply.outputs.ip }} to be ready..."
+          echo "Waiting for instance to be ready..."
           sleep 30
         
       - name: Deploy application
-        working-directory: ./terraform
         run: |
-          echo "Starting deployment to ${{ steps.tf-apply.outputs.ip }}"
+          IP="${{ steps.tf-apply.outputs.instance_ip }}"
+          echo "Deploying to $IP"
+          
           # בדיקת קישוריות
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@${{ steps.tf-apply.outputs.ip }} 'echo "Connection test"' || exit 1
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@$IP 'echo "Connection test"' || {
+            echo "Failed to connect to instance"
+            exit 1
+          }
           
           # העלאת הקבצים
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem -r ../* ubuntu@${{ steps.tf-apply.outputs.ip }}:/home/ubuntu/app
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem -r ./* ubuntu@$IP:/home/ubuntu/app || {
+            echo "Failed to copy files"
+            exit 1
+          }
           
           # התקנה והפעלה
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@${{ steps.tf-apply.outputs.ip }} '
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem ubuntu@$IP '
             cd /home/ubuntu/app &&
             sudo apt-get update &&
             sudo apt-get install -y python3-pip &&
             pip3 install -r requirements.txt &&
             nohup python3 app.py > app.log 2>&1 &
-          '
+          ' || {
+            echo "Failed to set up application"
+            exit 1
+          }
