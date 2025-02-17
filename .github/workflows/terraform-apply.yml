@@ -43,13 +43,15 @@ jobs:
           chmod 600 private_key.pem
         
       - name: Wait for instance to be ready
-        run: sleep 60
+        run: |
+         ls
+         sleep 60
         
       - name: Deploy application
         run: |
           echo "Deploying to ${{ env.instance_ip }}"
-          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@${{ env.instance_ip }}:/home/ubuntu/app
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${{ env.instance_ip }} '
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/app
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$(terraform output -raw instance_public_ip) '
             cd /home/ubuntu/app
             sudo apt-get update
             sudo apt-get install -y python3-pip
