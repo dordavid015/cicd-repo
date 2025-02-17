@@ -51,17 +51,19 @@ jobs:
         
       - name: Deploy application
         run: |
-          pwd
-          ls -la
-          cd terraform/
-          echo "instance_ip=$(terraform output -raw instance_public_ip)"
-          echo "Deploying to $(terraform output -raw instance_public_ip)"
-          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$(instance_ip):/home/ubuntu/app
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$(instance_ip) '
+          # Define the instance IP address as a variable
+          instance_ip=$(terraform output -raw instance_public_ip)
+          
+          # Verify that the instance_ip is set correctly
+          echo "Deploying to $instance_ip"
+          
+          # Use the instance_ip for SCP and SSH commands
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r ../* ubuntu@$instance_ip:/home/ubuntu/app
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$instance_ip '
             cd /home/ubuntu/app
             sudo apt-get update
             sudo apt-get install -y python3-pip
             pip3 install -r requirements.txt
-            # הפעלת האפליקציה
+            # Run the application in the background
             nohup python3 app.py > app.log 2>&1 & 
           '
