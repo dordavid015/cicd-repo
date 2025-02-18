@@ -48,7 +48,7 @@ jobs:
         id: get-ip2
         working-directory: ./terraform
         run: |
-          run: echo "::set-output name=instance_ip::$(terraform output -raw instance_public_ip)"
+          echo "::set-output name=instance_ip::$(terraform output -raw instance_public_ip)"
           sleep 18
           
       - name: Setup SSH Key
