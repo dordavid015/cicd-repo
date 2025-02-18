@@ -38,7 +38,6 @@ jobs:
         id: get-ip
         working-directory: ./terraform
         run: |
-          terraform output app_server
           terraform output -raw instance_public_ip > temp_ip.txt
           IP=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' temp_ip.txt | head -n 1)
           echo "IP is: $IP"
