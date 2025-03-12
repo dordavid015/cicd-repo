@@ -48,7 +48,7 @@ jobs:
         id: get-ip2
         working-directory: ./terraform
         run: |
-          terraform output instance_ip
+          terraform output instance_public_ip
           echo ${my_ip} 
           sleep 18
           
