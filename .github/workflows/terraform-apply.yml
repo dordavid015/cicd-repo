@@ -36,6 +36,7 @@ jobs:
       
       - name: Extract Public IP
         id: extract_ip
+        working-directory: ./terraform
         run: |
           # Save output to a temporary file to inspect it
           terraform output > terraform_output.txt
