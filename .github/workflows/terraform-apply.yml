@@ -34,12 +34,24 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
         
-      - name: Get Instance Public IP
-        id: get_ip
-        run: echo "instance_ip=$(terraform output -raw instance_public_ip)" >> "$GITHUB_OUTPUT"
+      - name: Get Instance IP
+        id: get-ip
+        working-directory: ./terraform
+        run: |
+          terraform output -raw instance_public_ip > temp_ip.txt
+          IP=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' temp_ip.txt | head -n 1)
+          echo "IP is: $IP"
+          echo "instance_ip=$IP" >> "$GITHUB_OUTPUT"
+          rm temp_ip.txt
 
-      - name: Use Instance IP
-        run: echo "Instance IP is ${{ steps.get_ip.outputs.instance_ip }}"
+      - name: Get Instance IP
+        id: get-ip-2
+        working-directory: ./terraform
+        run: |
+          dor=$(terraform output instance_public_ip)
+          echo "dor=$dor" >> "$GITHUB_OUTPUT"
+          echo "dor value is: ${dor}" 
+          sleep 10
           
       - name: Setup SSH Key
         working-directory: ./terraform
@@ -51,6 +63,7 @@ jobs:
       - name: Debug Info
         run: |
           echo "Using IP: ${{ steps.get-ip.outputs.instance_ip }}"
+          echo "Using IP: ${{ steps.get-ip-2.outputs.dor }}"
           
       - name: Wait for instance
         run: |
