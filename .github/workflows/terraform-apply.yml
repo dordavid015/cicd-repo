@@ -49,6 +49,11 @@ jobs:
         working-directory: ./terraform
         run: |
           dor=$(terraform output instance_public_ip)
+          sleep 10
+          echo "xxxxx"
+          echo $dor
+          sleep 10
+          terraform output instance_public_ip
           echo "dor=$dor" >> "$GITHUB_OUTPUT"
           echo "dor value is: ${dor}" 
           sleep 10
