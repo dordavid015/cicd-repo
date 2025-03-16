@@ -36,8 +36,10 @@ jobs:
       
       - name: Store IP Address
         run: |
-          echo "dor=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
-          echo "פרטי ההתחברות נשמרו בהצלחה"
+          # שמירת הפלט לקובץ זמני ואז קריאה ממנו
+          terraform output -raw instance_public_ip > ip_output.txt
+          dor=$(cat ip_output.txt | tr -d '\n' | tr -d '\r')
+          echo "dor=$dor" >> $GITHUB_ENV
           
       # שלב 7: הדפסת כתובת ה-IP שנשמרה
       - name: Print Connection Details
