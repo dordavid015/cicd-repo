@@ -39,8 +39,8 @@ jobs:
         id: get_ip
         run: |
           IP=$(terraform output -raw instance_public_ip)
-          cat $IP
-          sleep(10)
+          echo $IP
+          sleep 10
           echo "ip=$IP" >> $GITHUB_OUTPUT
                 
       - name: Print Connection Details
