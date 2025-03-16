@@ -35,6 +35,7 @@ jobs:
         run: terraform apply -auto-approve
       
       - name: Store IP Address
+        working-directory: ./terraform
         run: |
           # שמירת הפלט לקובץ זמני ואז קריאה ממנו
           terraform output -raw instance_public_ip > ip_output.txt
