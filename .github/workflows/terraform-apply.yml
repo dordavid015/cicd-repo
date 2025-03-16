@@ -41,6 +41,10 @@ jobs:
           # Save output to a temporary file to inspect it
           terraform output > terraform_output.txt
           cat terraform_output.txt
+
+          which jq
+          apt-get update && apt-get install -y jq
+          which jq
         
           # Try to extract just the IP value
           IP=$(terraform output -json | jq -r '.instance_public_ip.value // .instance_public_ip')
