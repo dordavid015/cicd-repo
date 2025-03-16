@@ -34,14 +34,28 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
       
-      - name: Extract Public IP and Save to GitHub Environment
+      - name: Extract Public IP
+        id: extract_ip
         run: |
-          echo "EC2_PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
+        # Save output to a temporary file to inspect it
+          terraform output > terraform_output.txt
+          cat terraform_output.txt
         
-      - name: Print the IP from Environment Variable
+        # Try to extract just the IP value
+          IP=$(terraform output -json | jq -r '.instance_public_ip.value // .instance_public_ip')
+          echo "Raw extracted IP: $IP"
+        
+        # Set the IP as output and environment variable
+          echo "EC2_PUBLIC_IP=$IP" >> $GITHUB_ENV
+          echo "ec2_ip=$IP" >> $GITHUB_OUTPUT
+        
+      - name: Verify Environment Variable
         run: |
-           echo "EC2 Public IP Address: ${{ env.EC2_PUBLIC_IP }}"
-        
+          echo "EC2 Public IP from env: ${{ env.EC2_PUBLIC_IP }}"
+          echo "EC2 Public IP from output: ${{ steps.extract_ip.outputs.ec2_ip }}"
+
+
+
       - name: Get Instance IP
         id: get-ip
         working-directory: ./terraform
