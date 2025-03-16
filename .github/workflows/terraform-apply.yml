@@ -48,16 +48,10 @@ jobs:
         id: get-ip-2
         working-directory: ./terraform
         run: |
-          dor=$(terraform output -raw instance_public_ip)
-          echo "$dor"
+          dor=$(terraform output -raw instance_public_ip 2>/dev/null)
+          echo "Extracted IP: $dor"
           sleep 10
-          echo "xxxxx"
-          echo $dor
-          sleep 10
-          terraform output instance_public_ip
-          echo "dor=$dor" >> "$GITHUB_OUTPUT"
-          echo "dor value is: ${dor}" 
-          sleep 10
+ 
           
       - name: Setup SSH Key
         working-directory: ./terraform
