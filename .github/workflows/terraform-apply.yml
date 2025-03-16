@@ -34,36 +34,16 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
       
-      - name: Extract Public IP
-        id: extract_ip
-        working-directory: ./terraform
+      - name: Store IP Address
         run: |
-          # Save output to a temporary file to inspect it
-          terraform output > terraform_output.txt
-          cat terraform_output.txt
-          echo "xxxxxxxxxxxxxxx"
-          echo "xxxxxxxxxxxxxxx"
-          echo "xxxxxxxxxxxxxxx"
+          echo "dor=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
+          echo "פרטי ההתחברות נשמרו בהצלחה"
           
-          cat terraform_output.txt
-
-          sleep(15)
-          which jq
-          sudo apt-get update && sudo apt-get install -y jq
-        
-          # Try to extract just the IP value
-          IP=$(terraform output -json | jq -r '.instance_public_ip.value // .instance_public_ip')
-          echo "Raw extracted IP: $IP"
-        
-          # Set the IP as output and environment variable
-          echo "EC2_PUBLIC_IP=$IP" >> $GITHUB_ENV
-          echo "ec2_ip=$IP" >> $GITHUB_OUTPUT
-        
-      - name: Verify Environment Variable
+      # שלב 7: הדפסת כתובת ה-IP שנשמרה
+      - name: Print Connection Details
         run: |
-          echo "EC2 Public IP from env: ${{ env.EC2_PUBLIC_IP }}"
-          echo "EC2 Public IP from output: ${{ steps.extract_ip.outputs.ec2_ip }}"
-
+          echo "כתובת ה-IP הציבורית של השרת: ${{ env.dor }}"
+          echo "פקודת ה-SSH להתחברות לשרת: $(terraform output -raw ssh_command)"
 
 
       - name: Get Instance IP
