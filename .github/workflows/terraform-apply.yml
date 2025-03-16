@@ -34,19 +34,6 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
       
-      - name: Store IP Address
-        working-directory: ./terraform
-        id: get_ip
-        run: |
-          IP=$(terraform output -raw instance_public_ip)
-          echo $IP
-          sleep 10
-          echo "ip=$IP" >> $GITHUB_OUTPUT
-                
-      - name: Print Connection Details
-        run: |
-          echo "Public ip dor: ${{ steps.get_ip.outputs.ip }}"
-
       - name: Get Instance IP
         id: get-ip
         working-directory: ./terraform
@@ -64,7 +51,6 @@ jobs:
           dor=$(terraform output -raw instance_public_ip 2>/dev/null)
           echo "Extracted IP: $dor"
           sleep 10
- 
           
       - name: Setup SSH Key
         working-directory: ./terraform
