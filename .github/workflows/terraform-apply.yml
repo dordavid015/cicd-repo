@@ -48,7 +48,8 @@ jobs:
         id: get-ip-2
         working-directory: ./terraform
         run: |
-          dor=$(terraform output instance_public_ip)
+          dor=$(terraform output -raw instance_public_ip)
+          echo "$dor"
           sleep 10
           echo "xxxxx"
           echo $dor
