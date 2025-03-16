@@ -45,9 +45,7 @@ jobs:
       # שלב 7: הדפסת כתובת ה-IP שנשמרה
       - name: Print Connection Details
         run: |
-          echo "כתובת ה-IP הציבורית של השרת: ${{ env.dor }}"
-          echo "פקודת ה-SSH להתחברות לשרת: $(terraform output -raw ssh_command)"
-
+          echo "Public ip dor: ${{ env.dor }}"
 
       - name: Get Instance IP
         id: get-ip
