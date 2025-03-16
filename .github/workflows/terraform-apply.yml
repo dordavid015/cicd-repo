@@ -34,18 +34,18 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
         
+      # - name: Get Instance IP
+      #   id: get-ip
+      #   working-directory: ./terraform
+      #   run: |
+      #     terraform output -raw instance_public_ip > temp_ip.txt
+      #     IP=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' temp_ip.txt | head -n 1)
+      #     echo "IP is: $IP"
+      #     echo "instance_ip=$IP" >> "$GITHUB_OUTPUT"
+      #     rm temp_ip.txt
+
       - name: Get Instance IP
         id: get-ip
-        working-directory: ./terraform
-        run: |
-          terraform output -raw instance_public_ip > temp_ip.txt
-          IP=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' temp_ip.txt | head -n 1)
-          echo "IP is: $IP"
-          echo "instance_ip=$IP" >> "$GITHUB_OUTPUT"
-          rm temp_ip.txt
-
-      - name: Get Instance IP2
-        id: get-ip2
         working-directory: ./terraform
         run: |
           terraform output instance_public_ip
