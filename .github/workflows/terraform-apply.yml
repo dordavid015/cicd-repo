@@ -36,16 +36,14 @@ jobs:
       
       - name: Store IP Address
         working-directory: ./terraform
+        id: get_ip
         run: |
-          # שמירת הפלט לקובץ זמני ואז קריאה ממנו
-          terraform output -raw instance_public_ip > ip_output.txt
-          dor=$(cat ip_output.txt | tr -d '\n' | tr -d '\r')
-          echo "dor=$dor" >> $GITHUB_ENV
-          
-      # שלב 7: הדפסת כתובת ה-IP שנשמרה
+          IP=$(terraform output -raw instance_public_ip)
+          echo "ip=$IP" >> $GITHUB_OUTPUT
+                
       - name: Print Connection Details
         run: |
-          echo "Public ip dor: ${{ env.dor }}"
+          echo "Public ip dor: ${{ steps.get_ip.outputs.ip }}"
 
       - name: Get Instance IP
         id: get-ip
